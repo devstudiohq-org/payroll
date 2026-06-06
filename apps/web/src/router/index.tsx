@@ -5,6 +5,7 @@ import { RequireAuth } from '../app/RequireAuth';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
+import Employees from '../pages/Employees';
 
 export const router = createBrowserRouter([
   {
@@ -25,7 +26,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'employees',
-        element: <PlaceholderPage title="Employees" />,
+        element: <Employees />,
       },
       {
         path: 'payroll-runs',
