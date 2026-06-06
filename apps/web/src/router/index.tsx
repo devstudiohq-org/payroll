@@ -4,6 +4,7 @@ import { AppShell } from '../app/AppShell';
 import { DashboardPage } from '../pages/DashboardPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
 import PayrollRuns from '../pages/PayrollRuns';
+import CompliancePage from '../pages/CompliancePage';
 
 export const router = createBrowserRouter([
   {
@@ -32,7 +33,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'compliance',
-        element: <PlaceholderPage title="Compliance" />,
+        element: <CompliancePage />,
       },
       {
         path: 'settings',
