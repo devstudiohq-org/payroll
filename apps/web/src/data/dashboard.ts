@@ -1,10 +1,13 @@
 /**
- * Dashboard view-model + placeholder data.
+ * Dashboard view-model + (currently empty) data.
  *
- * This is the single source of the dashboard's data. When the payroll API is
- * available, replace `dashboardData` with a query hook (see `useHealthCheck`
- * for the pattern) that returns the same `DashboardData` shape — the
- * presentational components below take it all via props and need no changes.
+ * Every value below is intentionally blank — the dashboard cards render their
+ * structure with no data until the payroll API is wired up. When the endpoint
+ * exists, replace `dashboardData` with a query hook (see `useHealthCheck` for
+ * the pattern) that returns the same `DashboardData` shape; the presentational
+ * components already handle null/empty values, so no card changes are needed.
+ *
+ * Value fields are nullable to represent "not yet loaded from the database".
  */
 
 export interface OrgInfo {
@@ -13,18 +16,18 @@ export interface OrgInfo {
 }
 
 export interface DashboardStats {
-  activeEmployees: number;
-  monthlyPayrollCost: number;
-  payrollRunsTotal: number;
+  activeEmployees: number | null;
+  monthlyPayrollCost: number | null;
+  payrollRunsTotal: number | null;
 }
 
 export interface CurrentPayRun {
-  periodStart: string; // ISO date (YYYY-MM-DD)
-  periodEnd: string; // ISO date (YYYY-MM-DD)
-  status: string;
-  netPay: number;
-  payDate: string; // ISO date (YYYY-MM-DD)
-  employeeCount: number;
+  periodStart: string | null; // ISO date (YYYY-MM-DD)
+  periodEnd: string | null; // ISO date (YYYY-MM-DD)
+  status: string | null;
+  netPay: number | null;
+  payDate: string | null; // ISO date (YYYY-MM-DD)
+  employeeCount: number | null;
 }
 
 export interface TodoTask {
@@ -33,8 +36,9 @@ export interface TodoTask {
 }
 
 export interface CostSummaryItem {
+  /** Category label (structural, not data). */
   label: string;
-  value: number;
+  value: number | null;
   /** Tailwind background class used for both the bar fill and the dot. */
   colorClass: string;
 }
@@ -45,13 +49,13 @@ export interface CostSummary {
 }
 
 export interface TaxLine {
-  outstanding: number;
-  overdue: number;
+  outstanding: number | null;
+  overdue: number | null;
 }
 
 export interface EmployeeBreakdown {
-  hourly: number;
-  salaried: number;
+  hourly: number | null;
+  salaried: number | null;
 }
 
 export interface TaxSummary {
@@ -61,7 +65,6 @@ export interface TaxSummary {
 }
 
 export interface DashboardData {
-  user: { firstName: string };
   org: OrgInfo;
   stats: DashboardStats;
   currentPayRun: CurrentPayRun;
@@ -71,37 +74,33 @@ export interface DashboardData {
 }
 
 export const dashboardData: DashboardData = {
-  user: { firstName: 'Bonita' },
-  org: { name: 'TechNova Solutions', industry: 'Technology' },
+  org: { name: '', industry: '' },
   stats: {
-    activeEmployees: 24,
-    monthlyPayrollCost: 55376.44,
-    payrollRunsTotal: 12,
+    activeEmployees: null,
+    monthlyPayrollCost: null,
+    payrollRunsTotal: null,
   },
   currentPayRun: {
-    periodStart: '2025-09-16',
-    periodEnd: '2025-09-30',
-    status: 'Approved',
-    netPay: 55376.44,
-    payDate: '2026-01-30',
-    employeeCount: 24,
+    periodStart: null,
+    periodEnd: null,
+    status: null,
+    netPay: null,
+    payDate: null,
+    employeeCount: null,
   },
-  todoTasks: [
-    { id: 'tax-overdue', text: '1 Tax payment(s) are overdue to be paid.' },
-    { id: 'forms-pending', text: '2 Form(s) are pending to be filed.' },
-  ],
+  todoTasks: [],
   costSummary: {
     period: 'This year',
     items: [
-      { label: 'Net Pay', value: 171042.36, colorClass: 'bg-blue-600' },
-      { label: 'Taxes', value: 62026.52, colorClass: 'bg-blue-400' },
-      { label: 'Benefits', value: 15250.0, colorClass: 'bg-blue-300' },
-      { label: 'Deductions', value: 9860.0, colorClass: 'bg-slate-500' },
+      { label: 'Net Pay', value: null, colorClass: 'bg-blue-600' },
+      { label: 'Taxes', value: null, colorClass: 'bg-blue-400' },
+      { label: 'Benefits', value: null, colorClass: 'bg-blue-300' },
+      { label: 'Deductions', value: null, colorClass: 'bg-slate-500' },
     ],
   },
   taxSummary: {
-    federal: { outstanding: 20711.78, overdue: 20711.78 },
-    provincial: { outstanding: 3764.81, overdue: 3764.81 },
-    employees: { hourly: 9, salaried: 15 },
+    federal: { outstanding: null, overdue: null },
+    provincial: { outstanding: null, overdue: null },
+    employees: { hourly: null, salaried: null },
   },
 };
