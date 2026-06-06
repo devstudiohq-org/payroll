@@ -4,5 +4,5 @@ export interface ComplianceReport {
   period: string;
   status: 'Filed' | 'Generated';
   generated: string;
-  filed: string; // e.g. '4/9/2026' or '-'
+  filed: string;
 }
