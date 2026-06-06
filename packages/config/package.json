@@ -1,0 +1,20 @@
+{
+  "name": "@starter/config",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "files": [
+    "eslint",
+    "typescript"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node -e \"console.log('No tests in @starter/config yet')\"",
+    "type-check": "node -e \"console.log('No type-check step for @starter/config')\""
+  },
+  "dependencies": {
+    "@eslint/js": "^9.39.1",
+    "globals": "^17.6.0",
+    "typescript-eslint": "^8.60.1"
+  }
+}

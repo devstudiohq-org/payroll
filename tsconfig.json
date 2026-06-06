@@ -1,0 +1,21 @@
+{
+  "extends": "./packages/config/typescript/base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/web/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/api"
+    },
+    {
+      "path": "./packages/db"
+    },
+    {
+      "path": "./packages/types"
+    }
+  ]
+}

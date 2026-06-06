@@ -1,0 +1,28 @@
+{
+  "name": "@starter/api",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "rimraf dist node_modules/.cache/tsconfig.build.tsbuildinfo && tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "test": "jest --config jest.config.cjs --runInBand",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@starter/types": "workspace:*",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.9.2",
+    "@types/supertest": "^7.2.0",
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.11"
+  }
+}
