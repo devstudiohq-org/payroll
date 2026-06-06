@@ -1,6 +1,45 @@
-import { Wallet, Search, Building2, Bell, Settings, ChevronDown } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Wallet,
+  Search,
+  Building2,
+  Bell,
+  Settings,
+  ChevronDown,
+  User,
+  LogOut,
+} from 'lucide-react'
+
+import { useAuthStore } from '../store/auth-store'
 
 export function Header() {
+  const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
+
+  function handleSignOut() {
+    setMenuOpen(false)
+    logout()
+    void navigate('/login', { replace: true })
+  }
+
   return (
     <header className="flex h-16 items-center gap-4 bg-navy px-4 text-white sm:px-6">
       {/* Brand */}
@@ -36,11 +75,55 @@ export function Header() {
           <Settings className="h-5 w-5" strokeWidth={1.75} />
         </button>
 
-        <img
-          src="https://i.pravatar.cc/80?img=47"
-          alt="User avatar"
-          className="h-9 w-9 rounded-full object-cover ring-2 ring-white/20"
-        />
+        {/* Profile menu */}
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            className="flex rounded-full focus:outline-none focus:ring-2 focus:ring-white/40"
+          >
+            <img
+              src={user?.avatarUrl ?? 'https://i.pravatar.cc/80?img=47'}
+              alt="User avatar"
+              className="h-9 w-9 rounded-full object-cover ring-2 ring-white/20"
+            />
+          </button>
+
+          {menuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 z-20 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white text-ink shadow-lg"
+            >
+              <div className="px-4 py-3">
+                <p className="text-sm font-semibold text-ink">{user?.name ?? 'User'}</p>
+                <p className="mt-0.5 truncate text-xs text-muted">{user?.email ?? ''}</p>
+              </div>
+
+              <div className="border-t border-slate-100" />
+
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-slate-50"
+              >
+                <User className="h-4 w-4 text-slate-500" strokeWidth={1.75} />
+                Profile Settings
+              </button>
+
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.75} />
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

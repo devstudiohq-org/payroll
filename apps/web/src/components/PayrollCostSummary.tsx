@@ -4,7 +4,7 @@ import type { CostSummary } from '../data/dashboard';
 import { formatCurrency } from '../lib/format';
 
 export function PayrollCostSummary({ summary }: { summary: CostSummary }) {
-  const max = Math.max(...summary.items.map((item) => item.value));
+  const max = Math.max(0, ...summary.items.map((item) => item.value ?? 0));
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6">
@@ -21,23 +21,27 @@ export function PayrollCostSummary({ summary }: { summary: CostSummary }) {
 
       {/* Bars */}
       <div className="mt-6 flex flex-col gap-4">
-        {summary.items.map((item) => (
-          <div key={item.label} className="flex items-center gap-4">
-            <span className="w-24 shrink-0 text-sm text-ink">{item.label}</span>
+        {summary.items.map((item) => {
+          const width = item.value != null && max > 0 ? (item.value / max) * 100 : 0;
 
-            <div className="h-6 flex-1 overflow-hidden rounded-md bg-slate-100">
-              <div
-                className={`h-full rounded-md ${item.colorClass}`}
-                style={{ width: `${(item.value / max) * 100}%` }}
-              />
+          return (
+            <div key={item.label} className="flex items-center gap-4">
+              <span className="w-24 shrink-0 text-sm text-ink">{item.label}</span>
+
+              <div className="h-6 flex-1 overflow-hidden rounded-md bg-slate-100">
+                <div
+                  className={`h-full rounded-md ${item.colorClass}`}
+                  style={{ width: `${width}%` }}
+                />
+              </div>
+
+              <span className="flex w-36 shrink-0 items-center justify-end gap-2 text-sm font-semibold text-ink">
+                <span className={`h-2 w-2 rounded-full ${item.colorClass}`} />
+                {formatCurrency(item.value)}
+              </span>
             </div>
-
-            <span className="flex w-36 shrink-0 items-center justify-end gap-2 text-sm font-semibold text-ink">
-              <span className={`h-2 w-2 rounded-full ${item.colorClass}`} />
-              {formatCurrency(item.value)}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
