@@ -9,10 +9,6 @@ import { PayslipsPage } from '../pages/PayslipsPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
-<<<<<<< HEAD
-=======
-import Employees from '../pages/Employees';
->>>>>>> 2d0ead9fb1d733e260c93e8162d6f06cb7b78db8
 
 export const router = createBrowserRouter([
   {
