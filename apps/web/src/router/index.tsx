@@ -1,8 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import { AppShell } from '../app/AppShell';
+import { RequireAuth } from '../app/RequireAuth';
 import { DashboardPage } from '../pages/DashboardPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
+import { LoginPage } from '../pages/LoginPage';
 import Employees from '../pages/Employees';
 import PayrollRuns from '../pages/PayrollRuns';
 import CompliancePage from '../pages/CompliancePage';
@@ -10,7 +12,11 @@ import CompliancePage from '../pages/CompliancePage';
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <AppShell />,
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
     children: [
       {
         index: true,
@@ -42,4 +48,9 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
 ]);
+
