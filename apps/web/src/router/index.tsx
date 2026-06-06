@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { AppShell } from '../app/AppShell';
 import { DashboardPage } from '../pages/DashboardPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
+import Employees from '../pages/Employees';
 
 export const router = createBrowserRouter([
   {
@@ -15,7 +16,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'employees',
-        element: <PlaceholderPage title="Employees" />,
+        element: <Employees />,
       },
       {
         path: 'payroll-runs',
