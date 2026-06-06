@@ -5,8 +5,8 @@ metadata:
   type: project
 ---
 
-The payroll platform will let a user manage/run payroll for multiple companies. The company name shown in the app `Header` (currently hardcoded "TechNova Solutions") is intended to become the active-company selector/switcher.
+The payroll platform will let a user manage/run payroll for multiple companies. The active company name is shown in the app `Header` and the Settings → Companies tab, both reading from a single hardcoded constant `CURRENT_COMPANY_NAME` in `apps/web/src/data/company.ts` ("TechNova Solutions").
 
-**Why:** It's deliberately left static for now — the user wants it wired up only after the underlying logic and functions are built, not during the dashboard frontend work.
+**Why:** Deliberately static for now — the user wants real switching wired up only after the backend/multi-tenancy logic exists.
 
-**How to apply:** Don't propose plumbing org data into the `Header`/`AppShell` yet. Dashboard page data was centralized in `apps/web/src/data/dashboard.ts` (see the API seam comment there), but the global header switcher is a separate, later task.
+**How to apply:** The switcher *UI* now exists (Settings → Companies tab: `apps/web/src/pages/settings/CompaniesTab.tsx` — active-company banner, search, "Create New Company" card, and company-card grid with a "Switch to this company" action). It renders from an empty typed `Company[]` until the database is connected. Don't wire actual switching or plumb org data into a store/context yet; when the backend lands, replace the `CURRENT_COMPANY_NAME` constant + the empty `companies` array with the real source. Dashboard data follows the same seam pattern in `apps/web/src/data/dashboard.ts`.

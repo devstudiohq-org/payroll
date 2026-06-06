@@ -4,7 +4,10 @@ import { AppShell } from '../app/AppShell';
 import { RequireAuth } from '../app/RequireAuth';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
+import { PayslipsPage } from '../pages/PayslipsPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
+import { ReportsPage } from '../pages/ReportsPage';
+import { SettingsPage } from '../pages/SettingsPage';
 
 export const router = createBrowserRouter([
   {
@@ -33,11 +36,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'payslips',
-        element: <PlaceholderPage title="Payslips" />,
+        element: <PayslipsPage />,
       },
       {
         path: 'reports',
-        element: <PlaceholderPage title="Reports" />,
+        element: <ReportsPage />,
       },
       {
         path: 'compliance',
@@ -45,7 +48,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: <PlaceholderPage title="Settings" />,
+        element: <SettingsPage />,
       },
     ],
   },

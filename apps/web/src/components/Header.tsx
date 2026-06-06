@@ -11,6 +11,7 @@ import {
   LogOut,
 } from 'lucide-react'
 
+import { CURRENT_COMPANY_NAME } from '../data/company'
 import { useAuthStore } from '../store/auth-store'
 
 export function Header() {
@@ -64,7 +65,7 @@ export function Header() {
       <div className="ml-auto flex items-center gap-4 md:ml-0">
         <button className="flex items-center gap-2 text-sm font-medium">
           <Building2 className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden sm:inline">TechNova Solutions</span>
+          <span className="hidden sm:inline">{CURRENT_COMPANY_NAME}</span>
           <ChevronDown className="h-4 w-4 text-slate-400" />
         </button>
 
