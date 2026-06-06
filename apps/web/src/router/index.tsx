@@ -8,7 +8,6 @@ import PayrollRuns from '../pages/PayrollRuns';
 import CompliancePage from '../pages/CompliancePage';
 import { LoginPage } from '../pages/LoginPage';
 import { PayslipsPage } from '../pages/PayslipsPage';
-import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
