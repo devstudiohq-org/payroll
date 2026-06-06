@@ -2,7 +2,7 @@ import type { ElementType } from 'react'
 import { Landmark, Building } from 'lucide-react'
 
 import type { EmployeeBreakdown, TaxLine, TaxSummary } from '../data/dashboard'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatNumber } from '../lib/format'
 
 export function EmployeeSummary({ summary }: { summary: TaxSummary }) {
   return (
@@ -42,27 +42,30 @@ function TaxCard({
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           Total Outstanding
         </p>
-        <p className="mt-1 text-2xl font-bold text-ink">{formatCurrency(line.outstanding)}</p>
+        <p className="mt-1 min-h-8 text-2xl font-bold text-ink">
+          {formatCurrency(line.outstanding)}
+        </p>
       </div>
 
       <div className="mt-5">
         <p className="text-sm text-muted">Overdue Amount:</p>
-        <p className="text-lg font-semibold text-ink">{formatCurrency(line.overdue)}</p>
+        <p className="min-h-7 text-lg font-semibold text-ink">{formatCurrency(line.overdue)}</p>
       </div>
     </div>
   )
 }
 
 function ActiveEmployeesCard({ employees }: { employees: EmployeeBreakdown }) {
-  const total = employees.hourly + employees.salaried
-  const max = Math.max(employees.hourly, employees.salaried)
+  const hasData = employees.hourly != null || employees.salaried != null
+  const total = hasData ? (employees.hourly ?? 0) + (employees.salaried ?? 0) : null
+  const max = Math.max(0, employees.hourly ?? 0, employees.salaried ?? 0)
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted">
         Active Employees
       </p>
-      <p className="mt-1 text-3xl font-bold text-ink">{total}</p>
+      <p className="mt-1 min-h-9 text-3xl font-bold text-ink">{formatNumber(total)}</p>
       <a
         href="#"
         className="mt-2 inline-block text-sm font-medium text-brand hover:underline"
@@ -86,16 +89,15 @@ function Bar({
   colorClass,
 }: {
   label: string
-  value: number
+  value: number | null
   max: number
   colorClass: string
 }) {
+  const height = value != null && max > 0 ? (value / max) * 100 : 0
+
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <div
-        className={`w-9 rounded-t ${colorClass}`}
-        style={{ height: `${(value / max) * 100}%` }}
-      />
+      <div className={`w-9 rounded-t ${colorClass}`} style={{ height: `${height}%` }} />
       <span className="text-[10px] font-medium uppercase tracking-wide text-muted">
         {label}
       </span>
