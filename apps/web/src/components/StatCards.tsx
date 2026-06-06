@@ -2,7 +2,7 @@ import type { ElementType } from 'react'
 import { Users, DollarSign } from 'lucide-react'
 
 import type { DashboardStats } from '../data/dashboard'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatNumber } from '../lib/format'
 
 type Stat = {
   label: string
@@ -16,7 +16,7 @@ export function StatCards({ stats }: { stats: DashboardStats }) {
   const items: Stat[] = [
     {
       label: 'Active Employees',
-      value: String(stats.activeEmployees),
+      value: formatNumber(stats.activeEmployees),
       icon: Users,
       iconBg: 'bg-blue-100',
       iconColor: 'text-blue-600',
@@ -30,7 +30,7 @@ export function StatCards({ stats }: { stats: DashboardStats }) {
     },
     {
       label: 'Payroll Runs (Total)',
-      value: String(stats.payrollRunsTotal),
+      value: formatNumber(stats.payrollRunsTotal),
       icon: DollarSign,
       iconBg: 'bg-purple-100',
       iconColor: 'text-purple-600',
@@ -49,7 +49,7 @@ export function StatCards({ stats }: { stats: DashboardStats }) {
           </span>
           <div>
             <p className="text-sm text-muted">{label}</p>
-            <p className="text-2xl font-bold text-ink">{value}</p>
+            <p className="min-h-8 text-2xl font-bold text-ink">{value}</p>
           </div>
         </div>
       ))}

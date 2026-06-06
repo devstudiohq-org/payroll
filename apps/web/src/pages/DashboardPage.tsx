@@ -8,9 +8,11 @@ import {
   EmployeeSummary,
 } from '../components';
 import { useDashboard } from '../hooks/useDashboard';
+import { useAuthStore } from '../store/auth-store';
 
 export function DashboardPage() {
   const { data, isPending, isError } = useDashboard();
+  const firstName = useAuthStore((state) => state.user?.name.split(' ')[0] ?? '');
 
   if (isError) {
     return (
@@ -34,17 +36,18 @@ export function DashboardPage() {
     );
   }
 
-  const { user, org, stats, currentPayRun, todoTasks, costSummary, taxSummary } = data;
+  const { org, stats, currentPayRun, todoTasks, costSummary, taxSummary } = data;
+  const orgLine = [org.name, org.industry].filter(Boolean).join(' • ');
 
   return (
     <>
       {/* Welcome row */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Welcome {user.firstName}!</h1>
-          <p className="mt-1 text-sm text-muted">
-            {org.name} • {org.industry}
-          </p>
+          <h1 className="text-2xl font-bold text-ink">
+            {firstName ? `Welcome ${firstName}!` : 'Welcome!'}
+          </h1>
+          {orgLine && <p className="mt-1 text-sm text-muted">{orgLine}</p>}
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
