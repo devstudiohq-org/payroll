@@ -8,6 +8,7 @@ import { PayslipsPage } from '../pages/PayslipsPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import Employees from '../pages/Employees';
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +29,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'employees',
-        element: <PlaceholderPage title="Employees" />,
+        element: <Employees />,
       },
       {
         path: 'payroll-runs',
