@@ -4,17 +4,14 @@ import { AppShell } from '../app/AppShell';
 import { RequireAuth } from '../app/RequireAuth';
 import { DashboardPage } from '../pages/DashboardPage';
 import Employees from '../pages/Employees';
+import PayrollRuns from '../pages/PayrollRuns';
+import CompliancePage from '../pages/CompliancePage';
 import { LoginPage } from '../pages/LoginPage';
 import { PayslipsPage } from '../pages/PayslipsPage';
-import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
 export const router = createBrowserRouter([
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
   {
     path: '/',
     element: (
@@ -33,7 +30,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'payroll-runs',
-        element: <PlaceholderPage title="Payroll Runs" />,
+        element: <PayrollRuns />,
       },
       {
         path: 'payslips',
@@ -45,7 +42,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'compliance',
-        element: <PlaceholderPage title="Compliance" />,
+        element: <CompliancePage />,
       },
       {
         path: 'settings',
@@ -53,4 +50,9 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
 ]);
+
