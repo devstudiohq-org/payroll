@@ -7,11 +7,15 @@ import {
   Bell,
   Settings,
   ChevronDown,
+  Check,
+  Plus,
   User,
   LogOut,
 } from 'lucide-react'
 
-import { CURRENT_COMPANY_NAME } from '../data/company'
+import { CreateCompanyModal } from './CreateCompanyModal'
+import { useCompanies } from '../hooks/useCompanies'
+import { useCompanyStore } from '../store/company-store'
 import { useAuthStore } from '../store/auth-store'
 
 export function Header() {
@@ -19,26 +23,46 @@ export function Header() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
 
+  const { data: companies } = useCompanies()
+  const activeCompanyId = useCompanyStore((state) => state.activeCompanyId)
+  const setActiveCompany = useCompanyStore((state) => state.setActiveCompany)
+  const clearActiveCompany = useCompanyStore((state) => state.clearActiveCompany)
+
+  const activeCompany = companies?.find((company) => company.id === activeCompanyId) ?? null
+
   const [menuOpen, setMenuOpen] = useState(false)
+  const [companyMenuOpen, setCompanyMenuOpen] = useState(false)
+  const [showCreate, setShowCreate] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const companyMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!menuOpen) return
+    if (!menuOpen && !companyMenuOpen) return
 
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false)
       }
+      if (companyMenuRef.current && !companyMenuRef.current.contains(event.target as Node)) {
+        setCompanyMenuOpen(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [menuOpen])
+  }, [menuOpen, companyMenuOpen])
 
   function handleSignOut() {
     setMenuOpen(false)
+    clearActiveCompany()
     logout()
     void navigate('/login', { replace: true })
+  }
+
+  function handleSwitchCompany(companyId: string) {
+    setActiveCompany(companyId)
+    setCompanyMenuOpen(false)
+    void navigate('/', { replace: true })
   }
 
   return (
@@ -63,11 +87,75 @@ export function Header() {
 
       {/* Right cluster */}
       <div className="ml-auto flex items-center gap-4 md:ml-0">
-        <button className="flex items-center gap-2 text-sm font-medium">
-          <Building2 className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden sm:inline">{CURRENT_COMPANY_NAME}</span>
-          <ChevronDown className="h-4 w-4 text-slate-400" />
-        </button>
+        {/* Company switcher */}
+        <div className="relative" ref={companyMenuRef}>
+          <button
+            type="button"
+            onClick={() => setCompanyMenuOpen((open) => !open)}
+            aria-haspopup="menu"
+            aria-expanded={companyMenuOpen}
+            className="flex items-center gap-2 text-sm font-medium"
+          >
+            <Building2 className="h-5 w-5" strokeWidth={1.75} />
+            <span className="hidden sm:inline">{activeCompany?.name ?? 'Select Company'}</span>
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          </button>
+
+          {companyMenuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 z-20 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white text-ink shadow-lg"
+            >
+              <p className="px-4 pt-3 pb-2 text-xs font-bold uppercase tracking-wide text-muted">
+                Switch Company
+              </p>
+
+              <div className="max-h-72 overflow-y-auto">
+                {(companies ?? []).map((company) => {
+                  const isActive = company.id === activeCompanyId
+                  return (
+                    <button
+                      key={company.id}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleSwitchCompany(company.id)}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                        <Building2 className="h-4 w-4 text-brand" strokeWidth={1.75} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-ink">
+                          {company.name}
+                        </span>
+                        <span className="block truncate text-xs text-muted">
+                          {company.industry} • {company.employeeCount} employees
+                        </span>
+                      </span>
+                      {isActive && <Check className="h-4 w-4 text-brand" strokeWidth={2.5} />}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="border-t border-slate-100" />
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setCompanyMenuOpen(false)
+                  setShowCreate(true)
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-brand hover:bg-slate-50"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                  <Plus className="h-4 w-4 text-brand" strokeWidth={2} />
+                </span>
+                Create New Company
+              </button>
+            </div>
+          )}
+        </div>
 
         <button className="text-slate-300 hover:text-white">
           <Bell className="h-5 w-5" strokeWidth={1.75} />
@@ -126,6 +214,13 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {showCreate && (
+        <CreateCompanyModal
+          onClose={() => setShowCreate(false)}
+          onCreated={(companyId) => handleSwitchCompany(companyId)}
+        />
+      )}
     </header>
   )
 }

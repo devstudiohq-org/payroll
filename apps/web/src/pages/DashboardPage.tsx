@@ -8,11 +8,19 @@ import {
   EmployeeSummary,
 } from '../components';
 import { useDashboard } from '../hooks/useDashboard';
+import { useCompanies } from '../hooks/useCompanies';
+import { useEmployees } from '../hooks/useEmployees';
 import { useAuthStore } from '../store/auth-store';
+import { useCompanyStore } from '../store/company-store';
 
 export function DashboardPage() {
   const { data, isPending, isError } = useDashboard();
   const firstName = useAuthStore((state) => state.user?.name.split(' ')[0] ?? '');
+
+  const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
+  const { data: companies } = useCompanies();
+  const { data: employees } = useEmployees(activeCompanyId);
+  const activeCompany = companies?.find((company) => company.id === activeCompanyId) ?? null;
 
   if (isError) {
     return (
@@ -36,8 +44,20 @@ export function DashboardPage() {
     );
   }
 
-  const { org, stats, currentPayRun, todoTasks, costSummary, taxSummary } = data;
-  const orgLine = [org.name, org.industry].filter(Boolean).join(' • ');
+  const { stats, currentPayRun, todoTasks, costSummary, taxSummary } = data;
+
+  // Prefer the live active company for identity + employee count; fall back to
+  // the (currently mock) dashboard payload until those metrics are API-backed.
+  const orgName = activeCompany?.name ?? data.org.name;
+  const orgIndustry = activeCompany?.industry ?? data.org.industry;
+  const orgLine = [orgName, orgIndustry].filter(Boolean).join(' • ');
+
+  const liveStats = {
+    ...stats,
+    activeEmployees: employees
+      ? employees.filter((employee) => employee.status === 'Active').length
+      : stats.activeEmployees,
+  };
 
   return (
     <>
@@ -68,7 +88,7 @@ export function DashboardPage() {
 
       {/* Stat cards */}
       <div className="mt-6">
-        <StatCards stats={stats} />
+        <StatCards stats={liveStats} />
       </div>
 
       {/* Pay run + To Do tasks */}

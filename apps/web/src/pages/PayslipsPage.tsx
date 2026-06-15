@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Mail, Search } from 'lucide-react';
 
-import { CURRENT_COMPANY_NAME } from '../data/company';
+import { useActiveCompany } from '../hooks/useActiveCompany';
 
 export function PayslipsPage() {
   const [query, setQuery] = useState('');
   const [period, setPeriod] = useState('all');
+  const activeCompany = useActiveCompany();
 
   return (
     <>
@@ -13,7 +14,7 @@ export function PayslipsPage() {
       <div>
         <h1 className="text-2xl font-bold text-ink">Payslips</h1>
         <p className="mt-1 text-sm text-muted">
-          View and manage payslips for {CURRENT_COMPANY_NAME}
+          View and manage payslips for {activeCompany?.name ?? 'your company'}
         </p>
       </div>
 

@@ -2,7 +2,7 @@ import type { ElementType } from 'react';
 import { useState } from 'react';
 import { Download, FileText, Plus } from 'lucide-react';
 
-import { CURRENT_COMPANY_NAME } from '../data/company';
+import { useActiveCompany } from '../hooks/useActiveCompany';
 import { formatLongDate } from '../lib/format';
 
 type ReportType = {
@@ -47,6 +47,7 @@ interface GeneratedReport {
 
 export function ReportsPage() {
   const [filter, setFilter] = useState('all');
+  const activeCompany = useActiveCompany();
 
   // No reports until the database is connected.
   const reports: GeneratedReport[] = [];
@@ -58,7 +59,7 @@ export function ReportsPage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Reports</h1>
           <p className="mt-1 text-sm text-muted">
-            Generate and export payroll reports for {CURRENT_COMPANY_NAME}
+            Generate and export payroll reports for {activeCompany?.name ?? 'your company'}
           </p>
         </div>
 

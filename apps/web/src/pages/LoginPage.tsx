@@ -28,7 +28,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('demo1234');
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/select-company" replace />;
   }
 
   const canSubmit = email.trim().length > 0 && password.length > 0;
@@ -37,7 +37,7 @@ export function LoginPage() {
     event.preventDefault();
     if (!canSubmit) return;
     login(email.trim());
-    void navigate('/', { replace: true });
+    void navigate('/select-company', { replace: true });
   }
 
   return (

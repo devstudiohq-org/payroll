@@ -1,24 +1,30 @@
-import { useState } from 'react';
-import { ArrowRight, Building2, Check, Plus, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowRight, Building2, Check, Loader2, Plus, Search } from 'lucide-react';
+import type { CompanyDto } from '@starter/types';
 
-import { CURRENT_COMPANY_NAME } from '../../data/company';
+import { CreateCompanyModal } from '../../components/CreateCompanyModal';
+import { useCompanies } from '../../hooks/useCompanies';
+import { useCompanyStore } from '../../store/company-store';
 import { formatNumber } from '../../lib/format';
-
-interface Company {
-  id: string;
-  name: string;
-  industry: string;
-  trn: string;
-  nis: string;
-  employees: number;
-  active: boolean;
-}
 
 export function CompaniesTab() {
   const [search, setSearch] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
 
-  // Company profiles come from the database once multi-tenancy is wired up.
-  const companies: Company[] = [];
+  const { data: companies, isPending } = useCompanies();
+  const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
+  const setActiveCompany = useCompanyStore((state) => state.setActiveCompany);
+
+  const activeCompany = companies?.find((company) => company.id === activeCompanyId) ?? null;
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return companies ?? [];
+    return (companies ?? []).filter(
+      (company) =>
+        company.name.toLowerCase().includes(query) || company.trn.toLowerCase().includes(query),
+    );
+  }, [companies, search]);
 
   return (
     <div>
@@ -39,7 +45,7 @@ export function CompaniesTab() {
               Active
             </span>
           </div>
-          <p className="mt-0.5 text-sm text-muted">{CURRENT_COMPANY_NAME}</p>
+          <p className="mt-0.5 text-sm text-muted">{activeCompany?.name ?? 'No company selected'}</p>
         </div>
       </div>
 
@@ -59,6 +65,7 @@ export function CompaniesTab() {
       <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         <button
           type="button"
+          onClick={() => setShowCreate(true)}
           className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-8 text-center transition-colors hover:border-brand"
         >
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
@@ -70,33 +77,54 @@ export function CompaniesTab() {
           </div>
         </button>
 
-        {companies.map((company) => (
-          <CompanyCard key={company.id} company={company} />
-        ))}
+        {isPending ? (
+          <div className="flex min-h-56 items-center justify-center text-muted">
+            <Loader2 className="h-6 w-6 animate-spin" strokeWidth={1.75} />
+          </div>
+        ) : (
+          filtered.map((company) => (
+            <CompanyCard
+              key={company.id}
+              company={company}
+              active={company.id === activeCompanyId}
+              onSwitch={() => setActiveCompany(company.id)}
+            />
+          ))
+        )}
       </div>
+
+      {showCreate && <CreateCompanyModal onClose={() => setShowCreate(false)} />}
     </div>
   );
 }
 
-function CompanyCard({ company }: { company: Company }) {
+function CompanyCard({
+  company,
+  active,
+  onSwitch,
+}: {
+  company: CompanyDto;
+  active: boolean;
+  onSwitch: () => void;
+}) {
   return (
     <div
       className={`flex flex-col rounded-xl border bg-white p-5 ${
-        company.active ? 'border-brand' : 'border-slate-200'
+        active ? 'border-brand' : 'border-slate-200'
       }`}
     >
       <div className="flex items-center gap-3">
         <span
           className={`flex h-11 w-11 items-center justify-center rounded-xl ${
-            company.active ? 'bg-blue-100' : 'bg-slate-100'
+            active ? 'bg-blue-100' : 'bg-slate-100'
           }`}
         >
           <Building2
-            className={`h-6 w-6 ${company.active ? 'text-blue-600' : 'text-slate-500'}`}
+            className={`h-6 w-6 ${active ? 'text-blue-600' : 'text-slate-500'}`}
             strokeWidth={1.75}
           />
         </span>
-        {company.active && (
+        {active && (
           <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-brand">
             <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
             Active
@@ -110,15 +138,16 @@ function CompanyCard({ company }: { company: Company }) {
       <dl className="mt-4 space-y-2 text-sm">
         <DetailRow label="TRN:" value={company.trn} />
         <DetailRow label="NIS:" value={company.nis} />
-        <DetailRow label="Employees:" value={formatNumber(company.employees)} bold />
+        <DetailRow label="Employees:" value={formatNumber(company.employeeCount)} bold />
       </dl>
 
       <div className="mt-4 border-t border-slate-100 pt-4">
-        {company.active ? (
+        {active ? (
           <p className="text-center text-sm font-medium text-brand">Currently Active</p>
         ) : (
           <button
             type="button"
+            onClick={onSwitch}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy/90"
           >
             Switch to this company

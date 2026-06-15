@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import { AppShell } from '../app/AppShell';
 import { RequireAuth } from '../app/RequireAuth';
+import { RequireCompany } from '../app/RequireCompany';
 import { DashboardPage } from '../pages/DashboardPage';
 import Employees from '../pages/Employees';
 import PayrollRuns from '../pages/PayrollRuns';
@@ -9,6 +10,7 @@ import CompliancePage from '../pages/CompliancePage';
 import { LoginPage } from '../pages/LoginPage';
 import { PayslipsPage } from '../pages/PayslipsPage';
 import { ReportsPage } from '../pages/ReportsPage';
+import { SelectCompanyPage } from '../pages/SelectCompanyPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
 export const router = createBrowserRouter([
@@ -16,7 +18,9 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <RequireAuth>
-        <AppShell />
+        <RequireCompany>
+          <AppShell />
+        </RequireCompany>
       </RequireAuth>
     ),
     children: [
@@ -49,6 +53,14 @@ export const router = createBrowserRouter([
         element: <SettingsPage />,
       },
     ],
+  },
+  {
+    path: '/select-company',
+    element: (
+      <RequireAuth>
+        <SelectCompanyPage />
+      </RequireAuth>
+    ),
   },
   {
     path: '/login',
