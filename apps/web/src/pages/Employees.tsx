@@ -1,10 +1,25 @@
 import { useState } from 'react';
 import { Search, Upload, Plus, ChevronDown, MoreVertical, Users } from 'lucide-react';
-import { employees } from '../data/employees';
+
+import { useEmployees } from '../hooks/useEmployees';
+import { useCompanyStore } from '../store/company-store';
+
+/** First letters of the first two words of a name, e.g. "Marcus Brown" -> "MB". */
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+}
 
 export default function Employees() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
+
+  const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
+  const { data: employees = [] } = useEmployees(activeCompanyId);
 
   // Filter employees based on search query and department selection
   const filteredEmployees = employees.filter((employee) => {
@@ -132,7 +147,7 @@ export default function Employees() {
                       <td className="px-8 py-3">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-blue-50 text-brand font-semibold flex items-center justify-center text-sm border border-blue-100 uppercase">
-                            {employee.initials}
+                            {getInitials(employee.name)}
                           </div>
                           <div>
                             <div className="text-sm font-semibold text-slate-900">{employee.name}</div>

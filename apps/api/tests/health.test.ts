@@ -8,6 +8,7 @@ const env: AppEnv = {
   PORT: 4000,
   API_PREFIX: '/api',
   DATABASE_URL: 'postgres://starter:starter@localhost:5432/starter_db',
+  CORS_ORIGINS: [],
 };
 
 describe('GET /api/health', () => {
