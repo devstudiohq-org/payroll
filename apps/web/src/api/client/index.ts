@@ -5,6 +5,8 @@ import type {
   CreateEmployeeInput,
   EmployeeDto,
   HealthResponse,
+  PayrollRunDto,
+  CreatePayrollRunInput,
 } from '@starter/types';
 
 import { dashboardData, type DashboardData } from '../../data/dashboard';
@@ -86,6 +88,25 @@ export async function createEmployee(
   return data.employee;
 }
 
+export async function fetchPayrollRuns(companyId: string): Promise<PayrollRunDto[]> {
+  const response = await fetch(`${resolveApiBaseUrl()}/companies/${companyId}/payroll-runs`);
+  const data = await parseJson<{ runs: PayrollRunDto[] }>(response);
+  return data.runs;
+}
+
+export async function createPayrollRun(
+  companyId: string,
+  input: CreatePayrollRunInput,
+): Promise<PayrollRunDto> {
+  const response = await fetch(`${resolveApiBaseUrl()}/companies/${companyId}/payroll-runs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const data = await parseJson<{ run: PayrollRunDto }>(response);
+  return data.run;
+}
+
 export function fetchDashboard(): Promise<DashboardData> {
   // TODO: replace the mock with a real request once the dashboard endpoint is
   // backed by the database, e.g.:
@@ -94,3 +115,4 @@ export function fetchDashboard(): Promise<DashboardData> {
   //   return (await response.json()) as DashboardData;
   return Promise.resolve(dashboardData);
 }
+

@@ -5,3 +5,5 @@ export * from './PayRunCard';
 export * from './TodoTasks';
 export * from './PayrollCostSummary';
 export * from './EmployeeSummary';
+export * from './RunPayrollModal';
+

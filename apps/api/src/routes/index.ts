@@ -5,6 +5,7 @@ import type { Database } from '../lib/db';
 import { createHealthRouter } from './health';
 import { createCompaniesRouter } from './companies';
 import { createEmployeesRouter } from './employees';
+import { createPayrollRunsRouter } from './payroll-runs';
 
 type RoutesOptions = {
   env: AppEnv;
@@ -18,6 +19,8 @@ export function createRoutes(options: RoutesOptions): ExpressRouter {
   router.use(createHealthRouter(options));
   router.use(createCompaniesRouter(options));
   router.use(createEmployeesRouter(options));
+  router.use(createPayrollRunsRouter(options));
 
   return router;
 }
+
