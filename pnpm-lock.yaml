@@ -41,12 +41,18 @@ importers:
 
   apps/api:
     dependencies:
+      '@starter/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@starter/types':
         specifier: workspace:*
         version: link:../../packages/types
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@types/pg@8.20.0)(pg@8.21.0)
       express:
         specifier: ^5.2.1
         version: 5.2.1

@@ -1,39 +1,61 @@
 import { useState } from 'react';
-import { Search, Upload, Plus, ChevronDown, MoreVertical, Users } from 'lucide-react';
-import { employees } from '../data/employees';
+import { Search, Upload, Plus, ChevronDown, MoreVertical, Users, Loader2 } from 'lucide-react';
+import { useEmployees, useCreateEmployee, useCreateEmployeesBulk } from '../hooks/useEmployees';
+import { AddEmployeeModal } from '../components/modals/AddEmployeeModal';
+import { BulkUploadModal } from '../components/modals/BulkUploadModal';
+import type { CreateEmployeePayload } from '../api/client';
+
+function generateInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0]!.toUpperCase())
+    .slice(0, 2)
+    .join('');
+}
 
 export default function Employees() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
+
+  const { data: employees = [], isLoading } = useEmployees();
+  const createEmployee = useCreateEmployee();
+  const createEmployeesBulk = useCreateEmployeesBulk();
 
   // Filter employees based on search query and department selection
   const filteredEmployees = employees.filter((employee) => {
     const query = searchQuery.toLowerCase().trim();
     const matchesSearch =
       employee.name.toLowerCase().includes(query) ||
+      employee.email.toLowerCase().includes(query) ||
       employee.role.toLowerCase().includes(query) ||
       employee.trn.toLowerCase().includes(query) ||
       employee.nis.toLowerCase().includes(query);
 
-    let matchesDepartment = true;
-    if (selectedDepartment !== 'All') {
-      if (selectedDepartment === 'Operations') {
-        matchesDepartment =
-          employee.role.toLowerCase().includes('operations') ||
-          employee.role.toLowerCase().includes('manager');
-      } else if (selectedDepartment === 'Finance') {
-        matchesDepartment =
-          employee.role.toLowerCase().includes('accountant') ||
-          employee.role.toLowerCase().includes('finance');
-      } else if (selectedDepartment === 'Production') {
-        matchesDepartment =
-          employee.role.toLowerCase().includes('production') ||
-          employee.role.toLowerCase().includes('supervisor');
-      }
-    }
+    const matchesDepartment =
+      selectedDepartment === 'All' ||
+      employee.department === selectedDepartment;
 
     return matchesSearch && matchesDepartment;
   });
+
+  function handleAddEmployee(data: Omit<CreateEmployeePayload, 'salary'> & { salary: number }) {
+    return createEmployee.mutateAsync({
+      ...data,
+      salary: data.salary.toString(),
+    });
+  }
+
+  function handleBulkUpload(batch: (Omit<CreateEmployeePayload, 'salary'> & { salary: number })[]) {
+    return createEmployeesBulk.mutateAsync(
+      batch.map((item) => ({
+        ...item,
+        salary: item.salary.toString(),
+      })),
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -45,11 +67,17 @@ export default function Employees() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 transition-colors cursor-pointer">
+          <button
+            onClick={() => setShowBulkModal(true)}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 transition-colors cursor-pointer"
+          >
             <Upload className="h-4 w-4 text-slate-400" strokeWidth={2} />
             Bulk Upload
           </button>
-          <button className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+          >
             <Plus className="h-4 w-4" strokeWidth={2} />
             Add Employee
           </button>
@@ -88,7 +116,12 @@ export default function Employees() {
 
       {/* Table Container */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        {filteredEmployees.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+            <Loader2 size={32} className="text-brand animate-spin mb-4" />
+            <p className="text-sm text-slate-500 font-medium">Loading employees...</p>
+          </div>
+        ) : filteredEmployees.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-slate-100">
               <Users size={24} />
@@ -99,6 +132,24 @@ export default function Employees() {
                 ? 'Try adjusting your search terms or filters.'
                 : 'Get started by adding your first employee.'}
             </p>
+            {!searchQuery && selectedDepartment === 'All' && (
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={() => setShowBulkModal(true)}
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <Upload size={16} className="text-slate-400" />
+                  Bulk Upload
+                </button>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                >
+                  <Plus size={16} />
+                  Add Employee
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -127,50 +178,55 @@ export default function Employees() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredEmployees.map((employee) => (
-                    <tr key={employee.id} className="h-[78px] hover:bg-slate-50/50 transition-colors">
-                      <td className="px-8 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-blue-50 text-brand font-semibold flex items-center justify-center text-sm border border-blue-100 uppercase">
-                            {employee.initials}
+                  {filteredEmployees.map((employee) => {
+                    const initials = generateInitials(employee.name);
+                    const salaryNum = parseFloat(employee.salary);
+
+                    return (
+                      <tr key={employee.id} className="h-[78px] hover:bg-slate-50/50 transition-colors">
+                        <td className="px-8 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-blue-50 text-brand font-semibold flex items-center justify-center text-sm border border-blue-100 uppercase">
+                              {initials}
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-slate-900">{employee.name}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{employee.role}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-sm font-semibold text-slate-900">{employee.name}</div>
-                            <div className="text-xs text-slate-500 mt-0.5">{employee.role}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-3 text-sm text-slate-600 font-medium">
-                        {employee.trn}
-                      </td>
-                      <td className="px-8 py-3 text-sm text-slate-600 font-medium">
-                        {employee.nis}
-                      </td>
-                      <td className="px-8 py-3 text-sm text-slate-600 font-medium">
-                        $
-                        {employee.salary.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="px-8 py-3">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                            employee.status === 'Active'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                              : 'bg-slate-50 text-slate-600 border-slate-100'
-                          }`}
-                        >
-                          {employee.status}
-                        </span>
-                      </td>
-                      <td className="px-8 py-3 text-right">
-                        <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                          <MoreVertical size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-8 py-3 text-sm text-slate-600 font-medium">
+                          {employee.trn}
+                        </td>
+                        <td className="px-8 py-3 text-sm text-slate-600 font-medium">
+                          {employee.nis}
+                        </td>
+                        <td className="px-8 py-3 text-sm text-slate-600 font-medium">
+                          $
+                          {salaryNum.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </td>
+                        <td className="px-8 py-3">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                              employee.status === 'Active'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                : 'bg-slate-50 text-slate-600 border-slate-100'
+                            }`}
+                          >
+                            {employee.status}
+                          </span>
+                        </td>
+                        <td className="px-8 py-3 text-right">
+                          <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                            <MoreVertical size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -192,6 +248,18 @@ export default function Employees() {
           </>
         )}
       </div>
+
+      {/* Modals */}
+      <AddEmployeeModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddEmployee}
+      />
+      <BulkUploadModal
+        open={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
+        onUpload={handleBulkUpload}
+      />
     </div>
   );
 }
