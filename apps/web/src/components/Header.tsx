@@ -129,7 +129,7 @@ export function Header() {
                           {company.name}
                         </span>
                         <span className="block truncate text-xs text-muted">
-                          {company.industry} • {company.employeeCount} employees
+                          {company.industry} • {company.activeEmployeeCount} employees
                         </span>
                       </span>
                       {isActive && <Check className="h-4 w-4 text-brand" strokeWidth={2.5} />}

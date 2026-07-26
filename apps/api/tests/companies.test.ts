@@ -23,11 +23,12 @@ const explodingDb = new Proxy(
   },
 ) as unknown as Database;
 
-/** A db that returns an empty company list for the happy-path list endpoint. */
+/** A db that returns an empty company list (and empty active-employee counts). */
 const listingDb = {
   select: () => ({
     from: () => ({
       orderBy: () => Promise.resolve([]),
+      where: () => ({ groupBy: () => Promise.resolve([]) }),
     }),
   }),
 } as unknown as Database;

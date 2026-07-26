@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { Search, Upload, Plus, ChevronDown, MoreVertical, Users } from 'lucide-react';
 
 import { useEmployees } from '../hooks/useEmployees';
+import { useTaxConfig } from '../hooks/useTaxConfig';
 import { useCompanyStore } from '../store/company-store';
+import { computeDeductions } from '../lib/tax';
+import { formatCurrency } from '../lib/format';
 
 /** First letters of the first two words of a name, e.g. "Marcus Brown" -> "MB". */
 function getInitials(name: string): string {
@@ -20,6 +23,7 @@ export default function Employees() {
 
   const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
   const { data: employees = [] } = useEmployees(activeCompanyId);
+  const { data: taxConfig } = useTaxConfig(activeCompanyId);
 
   // Filter employees based on search query and department selection
   const filteredEmployees = employees.filter((employee) => {
@@ -134,6 +138,12 @@ export default function Employees() {
                       Salary
                     </th>
                     <th className="px-8 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Deductions
+                    </th>
+                    <th className="px-8 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Net Pay
+                    </th>
+                    <th className="px-8 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-8 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
@@ -142,7 +152,11 @@ export default function Employees() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredEmployees.map((employee) => (
+                  {filteredEmployees.map((employee) => {
+                    const deductions = taxConfig
+                      ? computeDeductions(employee.salary, taxConfig)
+                      : null;
+                    return (
                     <tr key={employee.id} className="h-[78px] hover:bg-slate-50/50 transition-colors">
                       <td className="px-8 py-3">
                         <div className="flex items-center gap-3">
@@ -168,6 +182,12 @@ export default function Employees() {
                           maximumFractionDigits: 2,
                         })}
                       </td>
+                      <td className="px-8 py-3 text-sm font-medium text-slate-600">
+                        {deductions ? formatCurrency(deductions.totalDeductions) : '—'}
+                      </td>
+                      <td className="px-8 py-3 text-sm font-semibold text-slate-900">
+                        {deductions ? formatCurrency(deductions.netPay) : '—'}
+                      </td>
                       <td className="px-8 py-3">
                         <span
                           className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
@@ -185,7 +205,8 @@ export default function Employees() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

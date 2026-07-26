@@ -1,7 +1,14 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-import { appMetadata, companies, companyMembers, employees, payrollRuns } from './schema';
+import {
+  appMetadata,
+  companies,
+  companyMembers,
+  employees,
+  payrollRuns,
+  taxConfigurations,
+} from './schema';
 
 export const appMetadataInsertSchema = createInsertSchema(appMetadata);
 export const appMetadataSelectSchema = createSelectSchema(appMetadata);
@@ -10,6 +17,7 @@ export const companySelectSchema = createSelectSchema(companies);
 export const companyMemberSelectSchema = createSelectSchema(companyMembers);
 export const employeeSelectSchema = createSelectSchema(employees);
 export const payrollRunSelectSchema = createSelectSchema(payrollRuns);
+export const taxConfigurationSelectSchema = createSelectSchema(taxConfigurations);
 
 /** Payload for a single team member when creating a company. */
 export const companyMemberInputSchema = z.object({
@@ -42,15 +50,33 @@ export const createEmployeeSchema = z.object({
   status: z.enum(['Active', 'Inactive']).default('Active'),
 });
 
-/** Payload for creating a payroll run. */
+/**
+ * Payload for creating a payroll run. Totals and per-employee payslip lines are
+ * computed server-side from the company's active employees and tax configuration,
+ * so the client only chooses the period (and optionally the status).
+ */
 export const createPayrollRunSchema = z.object({
   period: z.string().trim().min(1, 'Period is required'),
-  employeesCount: z.coerce.number().int().min(0),
-  totalGrossPay: z.coerce.number().min(0),
-  totalNetPay: z.coerce.number().min(0),
-  totalTax: z.coerce.number().min(0),
-  totalNis: z.coerce.number().min(0),
   status: z.enum(['Completed', 'Pending', 'Processing']).default('Completed'),
+});
+
+const percentRate = z.coerce
+  .number()
+  .min(0, 'Rate must be 0 or more')
+  .max(100, 'Rate cannot exceed 100');
+
+/** Payload for saving (upserting) a company's tax configuration. All amounts are monthly. */
+export const upsertTaxConfigSchema = z.object({
+  taxFreeThreshold: z.coerce.number().min(0, 'Tax-free threshold must be 0 or more').default(0),
+  nisRate: percentRate.default(0),
+  nhtRate: percentRate.default(0),
+  edtaxRate: percentRate.default(0),
+  standardTaxRate: percentRate.default(0),
+  highEarnerThreshold: z.coerce
+    .number()
+    .min(0, 'High earner threshold must be 0 or more')
+    .default(0),
+  highEarnerTaxRate: percentRate.default(0),
 });
 
 export const companyIdParamSchema = z.object({
@@ -61,8 +87,32 @@ export const companyScopeParamSchema = z.object({
   companyId: z.string().uuid('A valid company id is required'),
 });
 
+export const payrollRunScopeParamSchema = z.object({
+  companyId: z.string().uuid('A valid company id is required'),
+  runId: z.string().uuid('A valid payroll run id is required'),
+});
+
+export const payslipScopeParamSchema = z.object({
+  companyId: z.string().uuid('A valid company id is required'),
+  runId: z.string().uuid('A valid payroll run id is required'),
+  payslipId: z.string().uuid('A valid payslip id is required'),
+});
+
+const adjustmentSchema = z.object({
+  label: z.string().trim().min(1, 'A label is required'),
+  amount: z.coerce.number().min(0, 'Amount must be 0 or more'),
+});
+
+/** Payload for editing a payslip line's additions and custom deductions. */
+export const updatePayslipSchema = z.object({
+  additions: z.array(adjustmentSchema).default([]),
+  customDeductions: z.array(adjustmentSchema).default([]),
+});
+
 export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 export type CompanyMemberInput = z.infer<typeof companyMemberInputSchema>;
 export type CreatePayrollRunInput = z.infer<typeof createPayrollRunSchema>;
+export type UpsertTaxConfigInput = z.infer<typeof upsertTaxConfigSchema>;
+export type UpdatePayslipInput = z.infer<typeof updatePayslipSchema>;
 

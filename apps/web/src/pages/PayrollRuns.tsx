@@ -5,11 +5,14 @@ import { useActiveCompany } from '../hooks/useActiveCompany';
 import { usePayrollRuns } from '../hooks/usePayrollRuns';
 import PayrollTable from '../components/PayrollTable';
 import { RunPayrollModal } from '../components/RunPayrollModal';
+import { EditPayrunModal } from '../components/EditPayrunModal';
+import type { PayrollRunDto } from '@starter/types';
 
 export default function PayrollRuns() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(searchParams.get('run') === 'true');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewRun, setViewRun] = useState<PayrollRunDto | null>(null);
 
   const activeCompany = useActiveCompany();
   const { data: runs = [], isPending: isLoadingRuns, refetch } = usePayrollRuns(
@@ -21,6 +24,11 @@ export default function PayrollRuns() {
     if (searchParams.get('run') === 'true') {
       setSearchParams({});
     }
+  };
+
+  const handleView = (rowId: string) => {
+    const run = runs.find((r) => `#${String(r.runNumber).padStart(6, '0')}` === rowId);
+    if (run) setViewRun(run);
   };
 
   // Map API DTOs to UI table format
@@ -91,6 +99,7 @@ export default function PayrollRuns() {
           runs={filteredRuns}
           totalRunsCount={mappedRuns.length}
           searchQuery={searchQuery}
+          onView={handleView}
         />
       )}
 
@@ -100,6 +109,15 @@ export default function PayrollRuns() {
         onClose={handleCloseModal}
         onSuccess={() => void refetch()}
       />
+
+      {/* Editable payrun preview */}
+      {viewRun && activeCompany && (
+        <EditPayrunModal
+          company={activeCompany}
+          run={viewRun}
+          onClose={() => setViewRun(null)}
+        />
+      )}
     </div>
   );
 }

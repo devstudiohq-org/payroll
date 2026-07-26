@@ -2,7 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, X, Loader2 } from 'lucide-react';
 import { useActiveCompany } from '../hooks/useActiveCompany';
 import { useEmployees } from '../hooks/useEmployees';
+import { useTaxConfig } from '../hooks/useTaxConfig';
 import { useCreatePayrollRun } from '../hooks/usePayrollRuns';
+import { computeDeductions } from '../lib/tax';
 
 interface RunPayrollModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ export function RunPayrollModal({ isOpen, onClose, onSuccess }: RunPayrollModalP
   const { data: employees = [], isPending: isLoadingEmployees } = useEmployees(
     activeCompany?.id ?? null,
   );
+  const { data: taxConfig } = useTaxConfig(activeCompany?.id ?? null);
   const { mutateAsync: createRun, isPending: isSavingRun } = useCreatePayrollRun(
     activeCompany?.id ?? null,
   );
@@ -55,21 +58,29 @@ export function RunPayrollModal({ isOpen, onClose, onSuccess }: RunPayrollModalP
     return employees.filter((e) => e.status === 'Active');
   }, [employees]);
 
-  // Calculations
-  const totalGrossPay = useMemo(() => {
-    return activeEmployees.reduce((sum, e) => sum + e.salary, 0);
-  }, [activeEmployees]);
+  // Preview totals computed from the company's tax configuration. These mirror
+  // what the server recomputes and stores when the run is created.
+  const totals = useMemo(() => {
+    return activeEmployees.reduce(
+      (acc, e) => {
+        const d = taxConfig
+          ? computeDeductions(e.salary, taxConfig)
+          : { grossPay: e.salary, nisDeduction: 0, incomeTax: 0, netPay: e.salary };
+        return {
+          gross: acc.gross + d.grossPay,
+          nis: acc.nis + d.nisDeduction,
+          tax: acc.tax + d.incomeTax,
+          net: acc.net + d.netPay,
+        };
+      },
+      { gross: 0, nis: 0, tax: 0, net: 0 },
+    );
+  }, [activeEmployees, taxConfig]);
 
-  const totalNis = useMemo(() => {
-    // Jamaican NIS rate: ~5.5% matching the visual example
-    return totalGrossPay * 0.055;
-  }, [totalGrossPay]);
-
-  const totalTax = 0.0; // Income tax is $0 in the mockup for this run
-
-  const totalNetPay = useMemo(() => {
-    return totalGrossPay - totalNis - totalTax;
-  }, [totalGrossPay, totalNis, totalTax]);
+  const totalGrossPay = totals.gross;
+  const totalNis = totals.nis;
+  const totalTax = totals.tax;
+  const totalNetPay = totals.net;
 
   if (!isOpen) return null;
 
@@ -92,11 +103,6 @@ export function RunPayrollModal({ isOpen, onClose, onSuccess }: RunPayrollModalP
     try {
       await createRun({
         period: selectedPeriod,
-        employeesCount: activeEmployees.length,
-        totalGrossPay,
-        totalNetPay,
-        totalTax,
-        totalNis,
         status: 'Completed',
       });
       onSuccess?.();
