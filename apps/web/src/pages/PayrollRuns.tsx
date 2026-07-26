@@ -1,20 +1,51 @@
-import { useState } from 'react';
-import { Search, Plus } from 'lucide-react';
-import { payrollRuns } from '../data/payrollRuns';
+import { useState, useMemo } from 'react';
+import { Search, Plus, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { useActiveCompany } from '../hooks/useActiveCompany';
+import { usePayrollRuns } from '../hooks/usePayrollRuns';
 import PayrollTable from '../components/PayrollTable';
+import { RunPayrollModal } from '../components/RunPayrollModal';
 
 export default function PayrollRuns() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isModalOpen, setIsModalOpen] = useState(searchParams.get('run') === 'true');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const activeCompany = useActiveCompany();
+  const { data: runs = [], isPending: isLoadingRuns, refetch } = usePayrollRuns(
+    activeCompany?.id ?? null,
+  );
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    if (searchParams.get('run') === 'true') {
+      setSearchParams({});
+    }
+  };
+
+  // Map API DTOs to UI table format
+  const mappedRuns = useMemo(() => {
+    return runs.map((run) => ({
+      id: `#${String(run.runNumber).padStart(6, '0')}`,
+      period: run.period,
+      employees: run.employeesCount,
+      totalNetPay: run.totalNetPay,
+      status: run.status,
+      completed: new Date(run.completedAt).toLocaleDateString('en-US'),
+    }));
+  }, [runs]);
+
   // Filter payroll runs based on search query
-  const filteredRuns = payrollRuns.filter((run) => {
+  const filteredRuns = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    return (
-      run.id.toLowerCase().includes(query) ||
-      run.period.toLowerCase().includes(query) ||
-      run.status.toLowerCase().includes(query)
-    );
-  });
+    return mappedRuns.filter((run) => {
+      return (
+        run.id.toLowerCase().includes(query) ||
+        run.period.toLowerCase().includes(query) ||
+        run.status.toLowerCase().includes(query)
+      );
+    });
+  }, [mappedRuns, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -22,10 +53,15 @@ export default function PayrollRuns() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-ink">Payroll Runs</h1>
-          <p className="mt-1 text-sm text-muted">Process and manage payroll</p>
+          <p className="mt-1 text-sm text-muted">
+            Process and manage payroll for {activeCompany?.name ?? 'your company'}
+          </p>
         </div>
 
-        <button className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+        >
           <Plus className="h-4 w-4" strokeWidth={2} />
           Run Payroll
         </button>
@@ -46,11 +82,25 @@ export default function PayrollRuns() {
       </div>
 
       {/* Table Section */}
-      <PayrollTable
-        runs={filteredRuns}
-        totalRunsCount={payrollRuns.length}
-        searchQuery={searchQuery}
+      {isLoadingRuns ? (
+        <div className="flex min-h-[200px] items-center justify-center text-muted">
+          <Loader2 className="h-6 w-6 animate-spin" strokeWidth={1.75} />
+        </div>
+      ) : (
+        <PayrollTable
+          runs={filteredRuns}
+          totalRunsCount={mappedRuns.length}
+          searchQuery={searchQuery}
+        />
+      )}
+
+      {/* Wizard Modal */}
+      <RunPayrollModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSuccess={() => void refetch()}
       />
     </div>
   );
 }
+

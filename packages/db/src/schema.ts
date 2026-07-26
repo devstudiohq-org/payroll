@@ -4,6 +4,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  serial,
   text,
   timestamp,
   uuid,
@@ -73,9 +74,29 @@ export const employees = pgTable('employees', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** A completed or pending payroll run, scoped to a single company. */
+export const payrollRuns = pgTable('payroll_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  runNumber: serial('run_number').notNull(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  period: text('period').notNull(),
+  employeesCount: integer('employees_count').notNull(),
+  totalGrossPay: numeric('total_gross_pay', { precision: 14, scale: 2 }).notNull().default('0'),
+  totalNetPay: numeric('total_net_pay', { precision: 14, scale: 2 }).notNull().default('0'),
+  totalTax: numeric('total_tax', { precision: 14, scale: 2 }).notNull().default('0'),
+  totalNis: numeric('total_nis', { precision: 14, scale: 2 }).notNull().default('0'),
+  status: text('status').notNull().default('Completed'), // 'Completed' | 'Pending' | 'Processing'
+  completedAt: timestamp('completed_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const companiesRelations = relations(companies, ({ many }) => ({
   members: many(companyMembers),
   employees: many(employees),
+  payrollRuns: many(payrollRuns),
 }));
 
 export const companyMembersRelations = relations(companyMembers, ({ one }) => ({
@@ -92,9 +113,19 @@ export const employeesRelations = relations(employees, ({ one }) => ({
   }),
 }));
 
+export const payrollRunsRelations = relations(payrollRuns, ({ one }) => ({
+  company: one(companies, {
+    fields: [payrollRuns.companyId],
+    references: [companies.id],
+  }),
+}));
+
 export type Company = typeof companies.$inferSelect;
 export type NewCompany = typeof companies.$inferInsert;
 export type CompanyMember = typeof companyMembers.$inferSelect;
 export type NewCompanyMember = typeof companyMembers.$inferInsert;
 export type Employee = typeof employees.$inferSelect;
 export type NewEmployee = typeof employees.$inferInsert;
+export type PayrollRun = typeof payrollRuns.$inferSelect;
+export type NewPayrollRun = typeof payrollRuns.$inferInsert;
+

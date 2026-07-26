@@ -82,3 +82,29 @@ export interface CreateEmployeeInput {
   salary: number;
   status: EmployeeStatus;
 }
+
+export interface PayrollRunDto {
+  id: string;
+  runNumber: number;
+  companyId: string;
+  period: string;
+  employeesCount: number;
+  totalGrossPay: number;
+  totalNetPay: number;
+  totalTax: number;
+  totalNis: number;
+  status: 'Completed' | 'Pending' | 'Processing';
+  completedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePayrollRunInput {
+  period: string;
+  employeesCount: number;
+  totalGrossPay: number;
+  totalNetPay: number;
+  totalTax: number;
+  totalNis: number;
+  status?: 'Completed' | 'Pending' | 'Processing';
+}

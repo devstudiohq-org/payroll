@@ -1,4 +1,5 @@
 import { AlertCircle, DollarSign, Loader2, Plus, Upload } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   StatCards,
@@ -14,7 +15,9 @@ import { useAuthStore } from '../store/auth-store';
 import { useCompanyStore } from '../store/company-store';
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { data, isPending, isError } = useDashboard();
+
   const firstName = useAuthStore((state) => state.user?.name.split(' ')[0] ?? '');
 
   const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
@@ -71,10 +74,17 @@ export function DashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
+          <button
+            onClick={() => {
+              void navigate('/payroll-runs?run=true');
+            }}
+            className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 cursor-pointer"
+          >
             <DollarSign className="h-4 w-4" strokeWidth={2} />
             Run Payroll
           </button>
+
+
           <button className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50">
             <Plus className="h-4 w-4" strokeWidth={2} />
             Add Employee
