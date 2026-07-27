@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "test": "jest --config jest.config.cjs --runInBand",
     "type-check": "tsc -p tsconfig.json --noEmit",
+    "backfill:payslips": "tsx scripts/backfill-payslips.ts",
     "start": "node dist/index.js"
   },
   "dependencies": {

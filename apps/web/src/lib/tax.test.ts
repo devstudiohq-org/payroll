@@ -88,7 +88,7 @@ describe('computeDeductions', () => {
 const identity = { employeeId: 'e1', name: 'A', role: 'R', trn: 'T', nis: 'N' };
 
 describe('computePayslipLine', () => {
-  it('taxes additions and applies custom deductions after statutory', () => {
+  it('taxes additions and treats custom deductions as pre-tax', () => {
     const line = computePayslipLine(
       identity,
       200_000,
@@ -97,15 +97,16 @@ describe('computePayslipLine', () => {
       config,
     );
 
-    // gross = 250k; NIS 7,500; statutory 242,500
+    // gross = 250k; NIS 7,500; gross - NIS = 242,500
+    // pre-tax pension 10,000 => chargeable = 232,500
     expect(line.baseGross).toBe(200_000);
     expect(line.grossPay).toBe(250_000);
     expect(line.nisDeduction).toBe(7_500);
-    expect(line.edtaxDeduction).toBe(5_456.25); // 2.25% of 242,500
-    expect(line.incomeTax).toBe(35_625); // (242,500 - 100,000) @ 25%
+    expect(line.edtaxDeduction).toBe(5_231.25); // 2.25% of 232,500
+    expect(line.incomeTax).toBe(33_125); // (232,500 - 100,000) @ 25%
     expect(line.customDeductionsTotal).toBe(10_000);
-    expect(line.totalDeductions).toBe(63_581.25);
-    expect(line.netPay).toBe(186_418.75);
+    expect(line.totalDeductions).toBe(60_856.25);
+    expect(line.netPay).toBe(189_143.75);
   });
 
   it('matches plain statutory deductions when there are no adjustments', () => {
