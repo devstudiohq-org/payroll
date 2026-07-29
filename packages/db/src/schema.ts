@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm';
 import {
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -56,6 +57,12 @@ export const companyMembers = pgTable('company_members', {
 });
 
 export const employeeStatus = pgEnum('employee_status', ['Active', 'Inactive']);
+export const employmentType = pgEnum('employment_type', [
+  'Full-time',
+  'Part-time',
+  'Intern',
+  'Contractor',
+]);
 
 /** A payroll employee, always scoped to a single company. */
 export const employees = pgTable('employees', {
@@ -70,6 +77,9 @@ export const employees = pgTable('employees', {
   nis: text('nis').notNull(),
   salary: numeric('salary', { precision: 14, scale: 2 }).notNull().default('0'),
   status: employeeStatus('status').notNull().default('Active'),
+  employmentType: employmentType('employment_type').notNull().default('Full-time'),
+  deductions: jsonb('deductions').$type<{ type: string; amount: number }[]>().default([]),
+  startDate: text('start_date'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });

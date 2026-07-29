@@ -40,6 +40,17 @@ export const createEmployeeSchema = z.object({
   nis: z.string().trim().min(1, 'NIS number is required'),
   salary: z.coerce.number().min(0, 'Salary must be 0 or more').default(0),
   status: z.enum(['Active', 'Inactive']).default('Active'),
+  employmentType: z.enum(['Full-time', 'Part-time', 'Intern', 'Contractor']).default('Full-time'),
+  startDate: z.string().optional(),
+  deductions: z
+    .array(
+      z.object({
+        type: z.string(),
+        amount: z.coerce.number(),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 /** Payload for creating a payroll run. */
@@ -61,8 +72,34 @@ export const companyScopeParamSchema = z.object({
   companyId: z.string().uuid('A valid company id is required'),
 });
 
+export const updateEmployeeSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  role: z.string().trim().min(1).optional(),
+  email: z.string().trim().email().optional().or(z.literal('')).optional(),
+  trn: z.string().trim().min(1).optional(),
+  nis: z.string().trim().min(1).optional(),
+  salary: z.coerce.number().min(0).optional(),
+  status: z.enum(['Active', 'Inactive']).optional(),
+  employmentType: z.enum(['Full-time', 'Part-time', 'Intern', 'Contractor']).optional(),
+  startDate: z.string().optional(),
+  deductions: z
+    .array(
+      z.object({
+        type: z.string(),
+        amount: z.coerce.number(),
+      }),
+    )
+    .optional(),
+});
+
+export const employeeParamSchema = z.object({
+  companyId: z.string().uuid('A valid company id is required'),
+  employeeId: z.string().uuid('A valid employee id is required'),
+});
+
 export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
+export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 export type CompanyMemberInput = z.infer<typeof companyMemberInputSchema>;
 export type CreatePayrollRunInput = z.infer<typeof createPayrollRunSchema>;
 

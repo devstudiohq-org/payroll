@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { Search, Upload, Plus, ChevronDown, MoreVertical, Users } from 'lucide-react';
 
+import type { EmployeeDto } from '@starter/types';
+
 import { useEmployees } from '../hooks/useEmployees';
 import { useCompanyStore } from '../store/company-store';
+import { AddEmployeeModal } from '../components/AddEmployeeModal';
+import { EmployeeProfileModal } from '../components/EmployeeProfileModal';
 
 /** First letters of the first two words of a name, e.g. "Marcus Brown" -> "MB". */
 function getInitials(name: string): string {
@@ -17,6 +21,8 @@ function getInitials(name: string): string {
 export default function Employees() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeDto | null>(null);
 
   const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
   const { data: employees = [] } = useEmployees(activeCompanyId);
@@ -64,7 +70,10 @@ export default function Employees() {
             <Upload className="h-4 w-4 text-slate-400" strokeWidth={2} />
             Bulk Upload
           </button>
-          <button className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+          >
             <Plus className="h-4 w-4" strokeWidth={2} />
             Add Employee
           </button>
@@ -143,7 +152,11 @@ export default function Employees() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredEmployees.map((employee) => (
-                    <tr key={employee.id} className="h-[78px] hover:bg-slate-50/50 transition-colors">
+                    <tr
+                      key={employee.id}
+                      onClick={() => setSelectedEmployee(employee)}
+                      className="h-[78px] hover:bg-slate-50 transition-colors cursor-pointer"
+                    >
                       <td className="px-8 py-3">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-blue-50 text-brand font-semibold flex items-center justify-center text-sm border border-blue-100 uppercase">
@@ -180,7 +193,13 @@ export default function Employees() {
                         </span>
                       </td>
                       <td className="px-8 py-3 text-right">
-                        <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedEmployee(employee);
+                          }}
+                          className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                        >
                           <MoreVertical size={18} />
                         </button>
                       </td>
@@ -207,6 +226,21 @@ export default function Employees() {
           </>
         )}
       </div>
+      {/* Add Employee Modal */}
+      {showAddModal && activeCompanyId && (
+        <AddEmployeeModal
+          companyId={activeCompanyId}
+          onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {/* Employee Profile Modal */}
+      {selectedEmployee && (
+        <EmployeeProfileModal
+          employee={selectedEmployee}
+          onClose={() => setSelectedEmployee(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,19 +1,17 @@
 import type { ElementType } from 'react';
 import { useState } from 'react';
-import { Building2, Calculator, CreditCard, Mail, Save, Shield } from 'lucide-react';
+import { Building2, Calculator, Mail, Save, Shield } from 'lucide-react';
 
 import { CompaniesTab } from './settings/CompaniesTab';
-import { DeductionsTab } from './settings/DeductionsTab';
 import { EmailTemplatesTab } from './settings/EmailTemplatesTab';
 import { SecurityTab } from './settings/SecurityTab';
 import { TaxEngineTab } from './settings/TaxEngineTab';
 
-type TabId = 'companies' | 'tax-engine' | 'deductions' | 'email-templates' | 'security';
+type TabId = 'companies' | 'tax-engine' | 'email-templates' | 'security';
 
 const TABS: { id: TabId; label: string; icon: ElementType }[] = [
   { id: 'companies', label: 'Companies', icon: Building2 },
   { id: 'tax-engine', label: 'Tax Engine', icon: Calculator },
-  { id: 'deductions', label: 'Deductions', icon: CreditCard },
   { id: 'email-templates', label: 'Email Templates', icon: Mail },
   { id: 'security', label: 'Security', icon: Shield },
 ];
@@ -63,7 +61,6 @@ export function SettingsPage() {
         <div className="p-6">
           {activeTab === 'companies' && <CompaniesTab />}
           {activeTab === 'tax-engine' && <TaxEngineTab />}
-          {activeTab === 'deductions' && <DeductionsTab />}
           {activeTab === 'email-templates' && <EmailTemplatesTab />}
           {activeTab === 'security' && <SecurityTab />}
         </div>

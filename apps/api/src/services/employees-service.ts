@@ -1,6 +1,6 @@
-import type { EmployeeDto } from '@starter/types';
+import type { EmployeeDto, UpdateEmployeeInput } from '@starter/types';
 import { employees, type CreateEmployeeInput, type Employee } from '@starter/db';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 
 import type { Database } from '../lib/db';
 
@@ -15,6 +15,9 @@ function toEmployeeDto(employee: Employee): EmployeeDto {
     nis: employee.nis,
     salary: Number(employee.salary),
     status: employee.status,
+    employmentType: employee.employmentType,
+    startDate: employee.startDate ? employee.startDate : null,
+    deductions: employee.deductions ?? [],
     createdAt: employee.createdAt.toISOString(),
     updatedAt: employee.updatedAt.toISOString(),
   };
@@ -46,6 +49,9 @@ export async function createEmployee(
       nis: input.nis,
       salary: input.salary.toFixed(2),
       status: input.status,
+      employmentType: input.employmentType ?? 'Full-time',
+      startDate: input.startDate ? input.startDate : null,
+      deductions: input.deductions ?? [],
     })
     .returning();
 
@@ -54,4 +60,36 @@ export async function createEmployee(
   }
 
   return toEmployeeDto(employee);
+}
+
+export async function updateEmployee(
+  db: Database,
+  companyId: string,
+  employeeId: string,
+  input: UpdateEmployeeInput,
+): Promise<EmployeeDto | null> {
+  const updateData: Partial<typeof employees.$inferInsert> = {
+    updatedAt: new Date(),
+  };
+
+  if (input.name !== undefined) updateData.name = input.name;
+  if (input.role !== undefined) updateData.role = input.role;
+  if (input.email !== undefined) updateData.email = input.email || null;
+  if (input.trn !== undefined) updateData.trn = input.trn;
+  if (input.nis !== undefined) updateData.nis = input.nis;
+  if (input.salary !== undefined) updateData.salary = input.salary.toFixed(2);
+  if (input.status !== undefined) updateData.status = input.status;
+  if (input.employmentType !== undefined) updateData.employmentType = input.employmentType;
+  if (input.startDate !== undefined) updateData.startDate = input.startDate || null;
+  if (input.deductions !== undefined) updateData.deductions = input.deductions;
+
+  const [updated] = await db
+    .update(employees)
+    .set(updateData)
+    .where(and(eq(employees.id, employeeId), eq(employees.companyId, companyId)))
+    .returning();
+
+  if (!updated) return null;
+
+  return toEmployeeDto(updated);
 }

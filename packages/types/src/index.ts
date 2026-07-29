@@ -58,6 +58,12 @@ export interface CreateCompanyInput {
 }
 
 export type EmployeeStatus = 'Active' | 'Inactive';
+export type EmploymentType = 'Full-time' | 'Part-time' | 'Intern' | 'Contractor';
+
+export interface EmployeeDeductionDto {
+  type: string;
+  amount: number;
+}
 
 export interface EmployeeDto {
   id: string;
@@ -69,6 +75,9 @@ export interface EmployeeDto {
   nis: string;
   salary: number;
   status: EmployeeStatus;
+  employmentType: EmploymentType;
+  startDate?: string | null;
+  deductions: EmployeeDeductionDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -81,7 +90,12 @@ export interface CreateEmployeeInput {
   nis: string;
   salary: number;
   status: EmployeeStatus;
+  employmentType?: EmploymentType;
+  startDate?: string;
+  deductions?: EmployeeDeductionDto[];
 }
+
+export type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
 
 export interface PayrollRunDto {
   id: string;

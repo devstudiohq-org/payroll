@@ -3,6 +3,7 @@ import type {
   CompanyDto,
   CreateCompanyInput,
   CreateEmployeeInput,
+  UpdateEmployeeInput,
   EmployeeDto,
   HealthResponse,
   PayrollRunDto,
@@ -81,6 +82,20 @@ export async function createEmployee(
 ): Promise<EmployeeDto> {
   const response = await fetch(`${resolveApiBaseUrl()}/companies/${companyId}/employees`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const data = await parseJson<{ employee: EmployeeDto }>(response);
+  return data.employee;
+}
+
+export async function updateEmployee(
+  companyId: string,
+  employeeId: string,
+  input: UpdateEmployeeInput,
+): Promise<EmployeeDto> {
+  const response = await fetch(`${resolveApiBaseUrl()}/companies/${companyId}/employees/${employeeId}`, {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
