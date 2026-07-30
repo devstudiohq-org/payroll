@@ -6,9 +6,10 @@ interface Props {
   runs: PayrollRun[];
   totalRunsCount: number;
   searchQuery: string;
+  onView?: (rowId: string) => void;
 }
 
-export default function PayrollTable({ runs, totalRunsCount, searchQuery }: Props) {
+export default function PayrollTable({ runs, totalRunsCount, searchQuery, onView }: Props) {
   if (runs.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -58,7 +59,7 @@ export default function PayrollTable({ runs, totalRunsCount, searchQuery }: Prop
           </thead>
           <tbody className="divide-y divide-slate-100">
             {runs.map((payroll, index) => (
-              <PayrollRow key={index} payroll={payroll} />
+              <PayrollRow key={index} payroll={payroll} onView={onView} />
             ))}
           </tbody>
         </table>

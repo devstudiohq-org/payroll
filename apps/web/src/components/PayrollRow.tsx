@@ -3,9 +3,10 @@ import { Eye, MoreVertical } from 'lucide-react';
 
 interface Props {
   payroll: PayrollRun;
+  onView?: (rowId: string) => void;
 }
 
-export default function PayrollRow({ payroll }: Props) {
+export default function PayrollRow({ payroll, onView }: Props) {
   return (
     <tr className="h-[72px] hover:bg-slate-50/50 transition-colors border-b border-slate-100">
       <td className="px-8 py-3 text-sm font-semibold text-slate-900">
@@ -42,7 +43,12 @@ export default function PayrollRow({ payroll }: Props) {
       </td>
       <td className="px-8 py-3 text-right">
         <div className="flex justify-end gap-3">
-          <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+          <button
+            type="button"
+            title="View / edit payroll run"
+            onClick={() => onView?.(payroll.id)}
+            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+          >
             <Eye size={18} />
           </button>
           <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">

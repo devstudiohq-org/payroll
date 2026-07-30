@@ -9,7 +9,24 @@ config({ path: path.resolve(__dirname, '../../../.env') });
 
 
 import { createDatabaseClient } from '../src/client';
-import { appMetadata, companies, companyMembers, employees } from '../src/schema';
+import {
+  appMetadata,
+  companies,
+  companyMembers,
+  employees,
+  taxConfigurations,
+} from '../src/schema';
+
+/** Base Jamaican statutory tax configuration applied to every company (monthly). */
+const BASE_TAX_CONFIG = {
+  taxFreeThreshold: '125000.00',
+  nisRate: '3.00',
+  nhtRate: '2.00',
+  edtaxRate: '2.25',
+  standardTaxRate: '25.00',
+  highEarnerThreshold: '500000.00',
+  highEarnerTaxRate: '30.00',
+};
 
 const COMPANY_SEED = [
   {
@@ -100,40 +117,49 @@ async function seed() {
     const existing = await db.select({ id: companies.id }).from(companies).limit(1);
     if (existing.length > 0) {
       console.log('Companies already seeded — skipping company seed');
-      console.log('Seed completed');
-      return;
-    }
+    } else {
+      for (const seed of COMPANY_SEED) {
+        const [company] = await db
+          .insert(companies)
+          .values({
+            name: seed.name,
+            industry: seed.industry,
+            employeeCount: seed.employeeCount,
+            address: seed.address,
+            trn: seed.trn,
+            nis: seed.nis,
+            email: seed.email,
+          })
+          .returning();
 
-    for (const seed of COMPANY_SEED) {
-      const [company] = await db
-        .insert(companies)
-        .values({
-          name: seed.name,
-          industry: seed.industry,
-          employeeCount: seed.employeeCount,
-          address: seed.address,
-          trn: seed.trn,
-          nis: seed.nis,
-          email: seed.email,
-        })
-        .returning();
+        if (!company) continue;
 
-      if (!company) continue;
+        if (seed.members.length > 0) {
+          await db
+            .insert(companyMembers)
+            .values(seed.members.map((member) => ({ companyId: company.id, ...member })));
+        }
 
-      if (seed.members.length > 0) {
-        await db
-          .insert(companyMembers)
-          .values(seed.members.map((member) => ({ companyId: company.id, ...member })));
+        if (seed.employees.length > 0) {
+          await db
+            .insert(employees)
+            .values(seed.employees.map((employee) => ({ companyId: company.id, ...employee })));
+        }
       }
 
-      if (seed.employees.length > 0) {
-        await db
-          .insert(employees)
-          .values(seed.employees.map((employee) => ({ companyId: company.id, ...employee })));
-      }
+      console.log(`Seeded ${COMPANY_SEED.length} companies`);
     }
 
-    console.log(`Seeded ${COMPANY_SEED.length} companies`);
+    // Ensure every company has the base tax configuration (idempotent).
+    const allCompanies = await db.select({ id: companies.id }).from(companies);
+    if (allCompanies.length > 0) {
+      await db
+        .insert(taxConfigurations)
+        .values(allCompanies.map((company) => ({ companyId: company.id, ...BASE_TAX_CONFIG })))
+        .onConflictDoNothing({ target: taxConfigurations.companyId });
+      console.log(`Ensured base tax config for ${allCompanies.length} companies`);
+    }
+
     console.log('Seed completed');
   } finally {
     await pool.end();

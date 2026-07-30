@@ -123,7 +123,7 @@ function CompanyCard({
       <dl className="mt-5 space-y-2.5 text-sm">
         <Row label="TRN:" value={company.trn} />
         <Row label="NIS:" value={company.nis} />
-        <Row label="Employees:" value={formatNumber(company.employeeCount)} bold />
+        <Row label="Employees:" value={formatNumber(company.activeEmployeeCount)} bold />
       </dl>
 
       <div className="mt-5 border-t border-slate-100 pt-4">

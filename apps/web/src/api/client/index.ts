@@ -7,6 +7,10 @@ import type {
   HealthResponse,
   PayrollRunDto,
   CreatePayrollRunInput,
+  PayslipLine,
+  TaxConfigDto,
+  UpsertTaxConfigInput,
+  UpdatePayslipInput,
 } from '@starter/types';
 
 import { dashboardData, type DashboardData } from '../../data/dashboard';
@@ -105,6 +109,54 @@ export async function createPayrollRun(
   });
   const data = await parseJson<{ run: PayrollRunDto }>(response);
   return data.run;
+}
+
+export async function fetchPayslips(
+  companyId: string,
+  runId: string,
+): Promise<PayslipLine[]> {
+  const response = await fetch(
+    `${resolveApiBaseUrl()}/companies/${companyId}/payroll-runs/${runId}/payslips`,
+  );
+  const data = await parseJson<{ lines: PayslipLine[] }>(response);
+  return data.lines;
+}
+
+export async function updatePayslip(
+  companyId: string,
+  runId: string,
+  payslipId: string,
+  input: UpdatePayslipInput,
+): Promise<PayslipLine> {
+  const response = await fetch(
+    `${resolveApiBaseUrl()}/companies/${companyId}/payroll-runs/${runId}/payslips/${payslipId}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+  );
+  const data = await parseJson<{ line: PayslipLine }>(response);
+  return data.line;
+}
+
+export async function fetchTaxConfig(companyId: string): Promise<TaxConfigDto> {
+  const response = await fetch(`${resolveApiBaseUrl()}/companies/${companyId}/tax-config`);
+  const data = await parseJson<{ config: TaxConfigDto }>(response);
+  return data.config;
+}
+
+export async function saveTaxConfig(
+  companyId: string,
+  input: UpsertTaxConfigInput,
+): Promise<TaxConfigDto> {
+  const response = await fetch(`${resolveApiBaseUrl()}/companies/${companyId}/tax-config`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const data = await parseJson<{ config: TaxConfigDto }>(response);
+  return data.config;
 }
 
 export function fetchDashboard(): Promise<DashboardData> {

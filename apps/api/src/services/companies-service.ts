@@ -2,11 +2,12 @@ import type { CompanyDto, CompanyMemberDto } from '@starter/types';
 import {
   companies,
   companyMembers,
+  employees,
   type Company,
   type CompanyMember,
   type CreateCompanyInput,
 } from '@starter/db';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq } from 'drizzle-orm';
 
 import type { Database } from '../lib/db';
 
@@ -21,12 +22,17 @@ function toMemberDto(member: CompanyMember): CompanyMemberDto {
   };
 }
 
-function toCompanyDto(company: Company, members?: CompanyMember[]): CompanyDto {
+function toCompanyDto(
+  company: Company,
+  members?: CompanyMember[],
+  activeEmployeeCount = 0,
+): CompanyDto {
   return {
     id: company.id,
     name: company.name,
     industry: company.industry,
     employeeCount: company.employeeCount,
+    activeEmployeeCount,
     address: company.address,
     trn: company.trn,
     nis: company.nis,
@@ -40,7 +46,16 @@ function toCompanyDto(company: Company, members?: CompanyMember[]): CompanyDto {
 
 export async function listCompanies(db: Database): Promise<CompanyDto[]> {
   const rows = await db.select().from(companies).orderBy(asc(companies.createdAt));
-  return rows.map((row) => toCompanyDto(row));
+
+  const counts = await db
+    .select({ companyId: employees.companyId, value: count() })
+    .from(employees)
+    .where(eq(employees.status, 'Active'))
+    .groupBy(employees.companyId);
+
+  const activeByCompany = new Map(counts.map((row) => [row.companyId, Number(row.value)]));
+
+  return rows.map((row) => toCompanyDto(row, undefined, activeByCompany.get(row.id) ?? 0));
 }
 
 export async function getCompany(db: Database, id: string): Promise<CompanyDto | null> {
@@ -56,7 +71,12 @@ export async function getCompany(db: Database, id: string): Promise<CompanyDto |
     .where(eq(companyMembers.companyId, id))
     .orderBy(asc(companyMembers.createdAt));
 
-  return toCompanyDto(company, members);
+  const [activeCount] = await db
+    .select({ value: count() })
+    .from(employees)
+    .where(and(eq(employees.companyId, id), eq(employees.status, 'Active')));
+
+  return toCompanyDto(company, members, Number(activeCount?.value ?? 0));
 }
 
 export async function createCompany(

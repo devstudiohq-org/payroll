@@ -6,6 +6,7 @@ import { createHealthRouter } from './health';
 import { createCompaniesRouter } from './companies';
 import { createEmployeesRouter } from './employees';
 import { createPayrollRunsRouter } from './payroll-runs';
+import { createTaxConfigRouter } from './tax-config';
 
 type RoutesOptions = {
   env: AppEnv;
@@ -20,6 +21,7 @@ export function createRoutes(options: RoutesOptions): ExpressRouter {
   router.use(createCompaniesRouter(options));
   router.use(createEmployeesRouter(options));
   router.use(createPayrollRunsRouter(options));
+  router.use(createTaxConfigRouter(options));
 
   return router;
 }

@@ -138,7 +138,7 @@ function CompanyCard({
       <dl className="mt-4 space-y-2 text-sm">
         <DetailRow label="TRN:" value={company.trn} />
         <DetailRow label="NIS:" value={company.nis} />
-        <DetailRow label="Employees:" value={formatNumber(company.employeeCount)} bold />
+        <DetailRow label="Employees:" value={formatNumber(company.activeEmployeeCount)} bold />
       </dl>
 
       <div className="mt-4 border-t border-slate-100 pt-4">

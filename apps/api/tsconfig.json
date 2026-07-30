@@ -9,6 +9,7 @@
   },
   "include": [
     "src",
+    "scripts",
     "tests",
     "jest.config.cjs"
   ]
